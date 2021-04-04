@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<module>
+	<name>oppla_for_ps</name>
+	<displayName><![CDATA[Oppla per PrestaShop]]></displayName>
+	<version><![CDATA[0.1.0]]></version>
+	<description><![CDATA[Questo modulo permette di integrare il tuo PrestaShop con Oppla.]]></description>
+	<author><![CDATA[Delivery Aggregator]]></author>
+	<tab><![CDATA[shipping_logistics]]></tab>
+	<is_configurable>1</is_configurable>
+	<need_instance>1</need_instance>
+</module>
