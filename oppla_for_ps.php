@@ -28,6 +28,8 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
+use Carbon\Carbon;
+
 class Oppla_For_PS extends Module
 {
     protected $config_form = false;
@@ -215,7 +217,7 @@ class Oppla_For_PS extends Module
     }
 
     public function hookActionOrderStatusUpdate($params)
-    {
+    {        
         $enabled = Configuration::get('OPPLA_FOR_PS_ENABLED', false);
         $token = Configuration::get('OPPLA_FOR_PS_TOKEN', "");
         $pickup = Configuration::get('OPPLA_FOR_PS_PICKUP_ADDRESS', "");
@@ -236,11 +238,17 @@ class Oppla_For_PS extends Module
         ]);
 
         $timeslots = $client->send($request);
+
+        if ($timeslots->getStatusCode() != 200)
+            throw new PrestaShopException($this->l("Can't retrive Oppla timeslot. Have you used a valid token?"));  
         
-        // TODO:
-        // get current date
-        // if AM shipped in PM
-        // if PM shipped in AM
+        $timeslots = $timeslots->getBody();
+
+        // FIX ME: let the user choose or anyway display in some way
+        
+        // get the first available
+        $from = $timeslots[0]['from'];
+        $to = $timeslots[0]['to'];
 
         $orderId = $params['newOrderStatus']->id_order;
 
@@ -253,8 +261,8 @@ class Oppla_For_PS extends Module
         // create the shipping
         $shipping = array(
             "content_description"   => "Ordine Web $orderId",
-            "from"                  => "2020-01-01T09:00:00.000000Z",
-            "to"                    => "2020-01-01T13:00:00.000000Z",
+            "from"                  => "$from",
+            "to"                    => "$to",
             "notes"                 => "$order->note",
             "package_type"          => "1",
             "recipient_name"        => "$address->firstname $address->firstname",
