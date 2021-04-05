@@ -11,6 +11,8 @@ $_MODULE['<{oppla_for_ps}prestashop>oppla_for_ps_bde2415e59e24cc3411b4ee3527526a
 $_MODULE['<{oppla_for_ps}prestashop>oppla_for_ps_b9f5c797ebbf55adccdd8539a65a0241'] = 'Disabilitato';
 $_MODULE['<{oppla_for_ps}prestashop>oppla_for_ps_bf731117d0c63981c01e9e427646af1b'] = 'Inserisci il tuo token personale';
 $_MODULE['<{oppla_for_ps}prestashop>oppla_for_ps_459a6f79ad9b13cbcb5f692d2cc7a94d'] = 'Token';
+$_MODULE['<{oppla_for_ps}prestashop>oppla_for_ps_9c3efc7add2c6640f12a86711f442bd8'] = 'Inserisci l\'indirizzo di ritiro (includi via, codice postale, città)';
+$_MODULE['<{oppla_for_ps}prestashop>oppla_for_ps_929a59d3a7a633f98494ea92b38860e6'] = 'Indirizzo di ritiro';
 $_MODULE['<{oppla_for_ps}prestashop>oppla_for_ps_c9cc8cce247e49bae79f15173ce97354'] = 'Salva';
 $_MODULE['<{oppla_for_ps}prestashop>configure_d9a0b99306ed34deda7ff67c7e753e5b'] = 'Oppla per PrestaShop';
 $_MODULE['<{oppla_for_ps}prestashop>configure_3895d852e3c4057cd62bd87824d88ffa'] = 'Benvenuto nella pagina di configurazione di Oppla per PrestaShop';

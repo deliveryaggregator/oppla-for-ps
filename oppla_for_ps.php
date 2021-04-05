@@ -29,11 +29,12 @@ if (!defined('_PS_VERSION_')) {
 }
 
 use Carbon\Carbon;
+use PrestaShop\PrestaShop\Core\Domain\Order\Exception\OrderException;
 
 class Oppla_For_PS extends Module
 {
     protected $config_form = false;
-    const BASEURLAPI = 'http://oppla.delivery/api/v1/'; 
+    const BASEURLAPI = 'https://oppla.delivery/api/v1'; 
 
     public function __construct()
     {
@@ -169,7 +170,7 @@ class Oppla_For_PS extends Module
                         'col' => 3,
                         'type' => 'text',
                         'prefix' => '<i class="icon icon-map-marker"></i>',
-                        'desc' => $this->l('Enter your pickup address'),
+                        'desc' => $this->l('Enter your pickup address (please include street, postcode, city)'),
                         'name' => 'OPPLA_FOR_PS_PICKUP_ADDRESS',
                         'label' => $this->l('Pickup address'),
                     )
@@ -226,31 +227,30 @@ class Oppla_For_PS extends Module
             return;
         
         if (empty($token) || empty($pickup))    
-            throw new PrestaShopException($this->l("Oppla for PS module is misconfigured. Token or address missing."));
+            throw new OrderException($this->l("Oppla for PS module is misconfigured. Token or address missing."));
     
         if ($params['newOrderStatus']->name != "Delivered")
             return;      
         
         $client = new \GuzzleHttp\Client();
 
-        $request = $client->createRequest('GET', "$this->BASEURLAPI/timeslots", [
-            'headers' => ['Authorization' => "Bearer $token"]
-        ]);
+        try {
+            $response = $client->get(self::BASEURLAPI."/timeslots", [
+                'headers' => ['Authorization' => "Bearer $token"]
+            ]);
+        } catch (GuzzleHttp\Exception\ClientException $e) {
+            throw new OrderException($this->l("Can't retrive Oppla timeslot. Have you used a valid token?"));
+        }
 
-        $timeslots = $client->send($request);
-
-        if ($timeslots->getStatusCode() != 200)
-            throw new PrestaShopException($this->l("Can't retrive Oppla timeslot. Have you used a valid token?"));  
-        
-        $timeslots = $timeslots->getBody();
-
+        $timeslots = json_decode($response->getBody());
+            
         // FIX ME: let the user choose or anyway display in some way
         
         // get the first available
-        $from = $timeslots[0]['from'];
-        $to = $timeslots[0]['to'];
+        $from = $timeslots[0]->from;
+        $to = $timeslots[0]->to;
 
-        $orderId = $params['newOrderStatus']->id_order;
+        $orderId = $params['id_order'];
 
         // get order object
         $order = new Order((int) $orderId);
@@ -264,27 +264,35 @@ class Oppla_For_PS extends Module
             "from"                  => "$from",
             "to"                    => "$to",
             "notes"                 => "$order->note",
-            "package_type"          => "1",
-            "recipient_name"        => "$address->firstname $address->firstname",
-            "delivery_address"      => "$address->address1 $address->address1 $address->postcode $address->city", // FIX ME: missing country
-            "pickup_addresses"=> array(             
+            "package_type"          => "2",
+            "recipient_name"        => "$address->firstname $address->lastname",
+            "delivery_address"      => "$address->address1 $address->address2 $address->postcode $address->city", // FIX ME: missing country
+            "pickup_addresses"      => array(array(             
                 "save"                  => false,
                 "name"                  => "Punto di ritiro",
                 "address"               => "$pickup"
-            ),
+            )),
             "content_value"         => $order->total_paid,
             "recipient_payment"     => $params['newOrderStatus']->paid == "0" ? $order->total_paid_real : "",
-            "recipient_phone"       => "$address->phone_mobile"
+            "recipient_phone"       => $address->phone_mobile == "" ? $address->phone : $address->phone_mobile
         );
 
-        $request = $client->createRequest('POST', "$this->baseUrlAPI/deliveries", [
-            'headers'   => ['Authorization' => "Bearer $token"],
-            'body'      => json_encode($shipping)
-        ]);
+        try {
+            $response = $client->post(self::BASEURLAPI."/deliveries", [
+                'headers'         => [
+                                    'Authorization' => "Bearer $token", 
+                                    'Content-Type'  => "application/json",
+                                    'Accept'        => "application/json" ],
+                'body'            => json_encode($shipping)
+            ]);
+        } catch (GuzzleHttp\Exception\ClientException $e) {
+            $error = "Unknown";
 
-        $response = $client->send($request);
-
-        if ($response->getStatusCode() != 200)
-            throw new PrestaShopException($this->l("Can't insert your order into Oppla."));        
+            if ($e->hasResponse())
+                $error = $e->getResponse()->getBody();
+                
+            throw new OrderException($this->l("Can't insert your order into Oppla. Error: ") . $error);
+        }
+            
     }
 }
