@@ -2,7 +2,7 @@
 <module>
 	<name>oppla_for_ps</name>
 	<displayName><![CDATA[Oppla per PrestaShop]]></displayName>
-	<version><![CDATA[0.1.0]]></version>
+	<version><![CDATA[0.2.0]]></version>
 	<description><![CDATA[Questo modulo permette di integrare il tuo PrestaShop con Oppla.]]></description>
 	<author><![CDATA[Delivery Aggregator]]></author>
 	<tab><![CDATA[shipping_logistics]]></tab>

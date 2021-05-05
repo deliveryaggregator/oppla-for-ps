@@ -40,7 +40,7 @@ class Oppla_For_PS extends Module
     {
         $this->name = 'oppla_for_ps';
         $this->tab = 'shipping_logistics';
-        $this->version = '0.1.0';
+        $this->version = '0.2.0';
         $this->author = 'Delivery Aggregator';
         $this->need_instance = 1;
 
