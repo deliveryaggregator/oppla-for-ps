@@ -132,6 +132,19 @@ class Oppla_For_PS extends Module
      */
     protected function getConfigForm()
     {
+        $currentLang = intval(Configuration::get('PS_LANG_DEFAULT'));
+        $status = (new OrderState())->getOrderStates($currentLang);
+        $options = array();
+
+        foreach($status as $index => $state)
+        {
+            array_push($options, array(
+                'id_option' => $index, 
+                'name' => $state['name'],  
+            ));
+
+        }
+        
         return array(
             'form' => array(
                 'legend' => array(
@@ -173,6 +186,17 @@ class Oppla_For_PS extends Module
                         'desc' => $this->l('Enter your pickup address (please include street, postcode, city)'),
                         'name' => 'OPPLA_FOR_PS_PICKUP_ADDRESS',
                         'label' => $this->l('Pickup address'),
+                    ),
+                    array(
+                        'type' => 'select',
+                        'label' => $this->l('Order status'),
+                        'name' => 'OPPLA_FOR_PS_INSERT_STATE',
+                        'desc' => $this->l('This status will trigger the insert action into Oppla.'),
+                        'options' => array(
+                          'query' => $options,
+                          'id' => 'id_option', 
+                          'name' => 'name'
+                        ),
                     )
                 ),
                 'submit' => array(
@@ -190,7 +214,8 @@ class Oppla_For_PS extends Module
         return array(
             'OPPLA_FOR_PS_ENABLED' => Configuration::get('OPPLA_FOR_PS_ENABLED', false),
             'OPPLA_FOR_PS_TOKEN' => Configuration::get('OPPLA_FOR_PS_TOKEN', ""),
-            'OPPLA_FOR_PS_PICKUP_ADDRESS' => Configuration::get('OPPLA_FOR_PS_PICKUP_ADDRESS', "")
+            'OPPLA_FOR_PS_PICKUP_ADDRESS' => Configuration::get('OPPLA_FOR_PS_PICKUP_ADDRESS', ""),
+            'OPPLA_FOR_PS_INSERT_STATE' => Configuration::get('OPPLA_FOR_PS_INSERT_STATE', "Delivered"),
         );
     }
 
@@ -222,6 +247,7 @@ class Oppla_For_PS extends Module
         $enabled = Configuration::get('OPPLA_FOR_PS_ENABLED', false);
         $token = Configuration::get('OPPLA_FOR_PS_TOKEN', "");
         $pickup = Configuration::get('OPPLA_FOR_PS_PICKUP_ADDRESS', "");
+        $state = Configuration::get('OPPLA_FOR_PS_INSERT_STATE', "Delivered");
 
         if ($enabled == false)
             return;
@@ -229,7 +255,7 @@ class Oppla_For_PS extends Module
         if (empty($token) || empty($pickup))    
             throw new OrderException($this->l("Oppla for PS module is misconfigured. Token or address missing."));
     
-        if ($params['newOrderStatus']->name != "Delivered")
+        if ($params['newOrderStatus']->name != $state)
             return;      
         
         $client = new \GuzzleHttp\Client();
