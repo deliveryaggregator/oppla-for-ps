@@ -136,13 +136,12 @@ class Oppla_For_PS extends Module
         $status = (new OrderState())->getOrderStates($currentLang);
         $options = array();
 
-        foreach($status as $index => $state)
+        foreach($status as $state)
         {
             array_push($options, array(
-                'id_option' => $index, 
+                'id_option' => $state['id_order_state'], 
                 'name' => $state['name'],  
             ));
-
         }
         
         return array(
@@ -215,7 +214,7 @@ class Oppla_For_PS extends Module
             'OPPLA_FOR_PS_ENABLED' => Configuration::get('OPPLA_FOR_PS_ENABLED', false),
             'OPPLA_FOR_PS_TOKEN' => Configuration::get('OPPLA_FOR_PS_TOKEN', ""),
             'OPPLA_FOR_PS_PICKUP_ADDRESS' => Configuration::get('OPPLA_FOR_PS_PICKUP_ADDRESS', ""),
-            'OPPLA_FOR_PS_INSERT_STATE' => Configuration::get('OPPLA_FOR_PS_INSERT_STATE', "Delivered"),
+            'OPPLA_FOR_PS_INSERT_STATE' => Configuration::get('OPPLA_FOR_PS_INSERT_STATE', 0),
         );
     }
 
@@ -247,17 +246,17 @@ class Oppla_For_PS extends Module
         $enabled = Configuration::get('OPPLA_FOR_PS_ENABLED', false);
         $token = Configuration::get('OPPLA_FOR_PS_TOKEN', "");
         $pickup = Configuration::get('OPPLA_FOR_PS_PICKUP_ADDRESS', "");
-        $state = Configuration::get('OPPLA_FOR_PS_INSERT_STATE', "Delivered");
+        $state = Configuration::get('OPPLA_FOR_PS_INSERT_STATE', 0);
 
         if ($enabled == false)
             return;
         
         if (empty($token) || empty($pickup))    
             throw new OrderException($this->l("Oppla for PS module is misconfigured. Token or address missing."));
-    
-        if ($params['newOrderStatus']->name != $state)
+
+        if ($params['newOrderStatus']->id != $state)
             return;      
-        
+
         $client = new \GuzzleHttp\Client();
 
         try {
